@@ -30,7 +30,8 @@ export default function App() {
   async function analyzePitch(event) {
     event.preventDefault();
     if (!file) { setError("Please upload a sales pitch first."); return; }
-    setLoading(true); setError(""); setResult(null); setWorkflow(null);
+    if (!companyName.trim()) { setError("Please enter your company or product name for competitive research."); return; }
+    setLoading(true); setError(""); setResult(null); setWorkflow(null); setCompetitiveResearch(null);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("provider", provider);
@@ -41,6 +42,13 @@ export default function App() {
       if (!response.ok) throw new Error(data.detail || "Agent workflow failed");
       setResult(data.analysis);
       setWorkflow(data.workflow);
+      const researchResponse = await fetch(`${API_URL}/competitive-research`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ company_name: companyName, industry, competitors: competitors.split(",").map((v) => v.trim()).filter(Boolean), research_mode: researchMode, provider }),
+      });
+      const researchData = await researchResponse.json();
+      if (!researchResponse.ok) throw new Error(researchData.detail || "Competitor research failed");
+      setCompetitiveResearch(researchData.research);
     } catch (err) {
       setError(err.message || "Unable to reach the backend. Is it running?");
     } finally { setLoading(false); }
@@ -73,8 +81,16 @@ export default function App() {
             <select id="provider" value={provider} onChange={(e) => setProvider(e.target.value)}>
               <option value="openai">OpenAI</option><option value="gemini">Google Gemini</option>
             </select>
-            <label className="field-label" htmlFor="companyName">Your company / product <span>Required for competitor research</span></label>\n            <input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="e.g. Acme CRM" />\n            <label className="field-label" htmlFor="industry">Industry</label>\n            <input id="industry" value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. CRM software" />\n            <label className="field-label" htmlFor="competitors">Competitors <span>Comma-separated · optional in automatic mode</span></label>
-            <input id="competitors" value={competitors} onChange={(e) => setCompetitors(e.target.value)} placeholder="e.g. Salesforce, HubSpot, Zoho" />\n            <label className="field-label" htmlFor="researchMode">Competitor research mode</label>\n            <select id="researchMode" value={researchMode} onChange={(e) => setResearchMode(e.target.value)}>\n              <option value="both">Automatic discovery + my competitors</option><option value="automatic">Automatic discovery only</option><option value="manual">My competitor list only</option>\n            </select>
+            <label className="field-label" htmlFor="companyName">Your company / product <span>Required for competitor research</span></label>
+            <input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="e.g. Acme CRM" />
+            <label className="field-label" htmlFor="industry">Industry</label>
+            <input id="industry" value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. CRM software" />
+            <label className="field-label" htmlFor="competitors">Competitors <span>Comma-separated · optional in automatic mode</span></label>
+            <input id="competitors" value={competitors} onChange={(e) => setCompetitors(e.target.value)} placeholder="e.g. Salesforce, HubSpot, Zoho" />
+            <label className="field-label" htmlFor="researchMode">Competitor research mode</label>
+            <select id="researchMode" value={researchMode} onChange={(e) => setResearchMode(e.target.value)}>
+              <option value="both">Automatic discovery + my competitors</option><option value="automatic">Automatic discovery only</option><option value="manual">My competitor list only</option>
+            </select>
             <button className="primary-button" type="submit" disabled={loading}>
               {loading ? <><LoaderCircle className="spin" size={18} /> Running pitch agents + competitor research…</> : <><Sparkles size={18} /> Run agentic pitch review</>}
             </button>
@@ -99,7 +115,25 @@ export default function App() {
               <ResultList title="Recommendations" icon={<Target size={17} />} items={result.recommendations} />
               <h3>Improved sales pitch</h3><div className="improved-pitch">{result.improved_pitch}</div>
               <h3>Competitor context</h3><p>{result.competitor_context}</p>
-              {competitiveResearch && <section className="competitive-report">\n                <h3><Target size={17} /> Live competitive intelligence</h3>\n                <p>{competitiveResearch.market_overview}</p>\n                <div className="competitor-chips">{competitiveResearch.competitors_researched.map((name) => <span key={name}>{name}</span>)}</div>\n                <ResultList title="Competitive themes" items={competitiveResearch.competitive_themes} />\n                <ResultList title="Pitch opportunities" items={competitiveResearch.pitch_opportunities} />\n                {competitiveResearch.findings.map((finding) => <article className="competitor-card" key={finding.name}>\n                  <h4>{finding.name} <small>{finding.confidence} confidence</small></h4><p>{finding.summary}</p><p><b>Positioning:</b> {finding.positioning}</p>\n                  <ResultList title="Products and features" items={finding.products_and_features} />\n                  <ResultList title="Pricing observations" items={finding.pricing_observations} />\n                  <ResultList title="Differentiators" items={finding.differentiators} />\n                  {finding.caveats?.length > 0 && <ResultList title="Caveats" items={finding.caveats} />}\n                  <small>Sources: {finding.source_ids.join(", ") || "None linked"}</small>\n                </article>)}\n                <h3>Research sources</h3>\n                <ol className="source-list">{competitiveResearch.sources.map((source) => <li key={source.source_id}><b>{source.source_id}</b> · <a href={source.url} target="_blank" rel="noreferrer">{source.title || source.url}</a><p>{source.snippet}</p></li>)}</ol>\n                <p className="disclaimer">{competitiveResearch.evidence_policy}</p>\n              </section>}\n              <p className="disclaimer">AI-generated assessment. Review source pages before relying on competitive claims or pricing.</p>
+              {competitiveResearch && <section className="competitive-report">
+                <h3><Target size={17} /> Live competitive intelligence</h3>
+                <p>{competitiveResearch.market_overview}</p>
+                <div className="competitor-chips">{competitiveResearch.competitors_researched.map((name) => <span key={name}>{name}</span>)}</div>
+                <ResultList title="Competitive themes" items={competitiveResearch.competitive_themes} />
+                <ResultList title="Pitch opportunities" items={competitiveResearch.pitch_opportunities} />
+                {competitiveResearch.findings.map((finding) => <article className="competitor-card" key={finding.name}>
+                  <h4>{finding.name} <small>{finding.confidence} confidence</small></h4><p>{finding.summary}</p><p><b>Positioning:</b> {finding.positioning}</p>
+                  <ResultList title="Products and features" items={finding.products_and_features} />
+                  <ResultList title="Pricing observations" items={finding.pricing_observations} />
+                  <ResultList title="Differentiators" items={finding.differentiators} />
+                  {finding.caveats?.length > 0 && <ResultList title="Caveats" items={finding.caveats} />}
+                  <small>Sources: {finding.source_ids.join(", ") || "None linked"}</small>
+                </article>)}
+                <h3>Research sources</h3>
+                <ol className="source-list">{competitiveResearch.sources.map((source) => <li key={source.source_id}><b>{source.source_id}</b> · <a href={source.url} target="_blank" rel="noreferrer">{source.title || source.url}</a><p>{source.snippet}</p></li>)}</ol>
+                <p className="disclaimer">{competitiveResearch.evidence_policy}</p>
+              </section>}
+              <p className="disclaimer">AI-generated assessment. Review source pages before relying on competitive claims or pricing.</p>
             </div>}
           </section>
         </section>

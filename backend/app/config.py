@@ -18,6 +18,11 @@ class Settings:
     DEFAULT_AI_PROVIDER = os.getenv("DEFAULT_AI_PROVIDER", "openai").lower()
     MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "20"))
     FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./pitchintel.db")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-only-change-this-secret-before-deploying")
+    ACCESS_TOKEN_MINUTES = int(os.getenv("ACCESS_TOKEN_MINUTES", "60"))
+    AWS_REGION = os.getenv("AWS_REGION", "ap-south-1")
+    AWS_S3_BUCKET = os.getenv("AWS_S3_BUCKET") or None
 
 
 settings = Settings()

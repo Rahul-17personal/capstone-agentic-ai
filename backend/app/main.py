@@ -2,13 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.agent_routes import router as agent_router
+from app.api.competitive_routes import router as competitive_router
 from app.api.routes import router
 from app.config import settings
 
 app = FastAPI(
     title=settings.APP_NAME,
     description="Sales Pitch Review and Competitive Intelligence",
-    version="0.2.0",
+    version="0.3.0",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -19,6 +20,7 @@ app.add_middleware(
 )
 app.include_router(router, prefix="/api/v1", tags=["Pitch Analysis"])
 app.include_router(agent_router, prefix="/api/v1", tags=["Agentic Workflow"])
+app.include_router(competitive_router, prefix="/api/v1", tags=["Competitive Intelligence"])
 
 
 @app.get("/")

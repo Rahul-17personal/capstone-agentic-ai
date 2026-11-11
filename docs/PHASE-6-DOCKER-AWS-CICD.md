@@ -35,7 +35,7 @@ Stop: `docker compose down`. To remove the local database volume too: `docker co
 - EC2 runs the frontend and backend containers with Docker Compose.
 - RDS PostgreSQL is private, and its security group allows TCP 5432 only from the EC2 security group.
 - S3 bucket has Block Public Access enabled; EC2 instance profile grants only required access to the PitchIntel object prefix.
-- CloudWatch receives EC2/container logs and host metrics. Configure alarms for instance health, CPU, disk and ALB 5xx/target health.
+- Install/configure the CloudWatch Agent (or Docker awslogs driver) to ship container and host logs/metrics. Configure alarms for instance health, CPU, disk and ALB 5xx/target health; log shipping is an AWS host setup task, not automatically provisioned by this Compose file.
 
 ## EC2 preparation
 Use a supported Linux AMI and install Docker Engine + Docker Compose plugin. Create an application directory, for example `/opt/pitchintel`, with:

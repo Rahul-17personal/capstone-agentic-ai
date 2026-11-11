@@ -252,7 +252,7 @@ export default function App() {
             </div>}
           </section>
         </section>
-        <footer>PitchIntel AI · Phase 5 · Secure multi-user sales intelligence</footer>
+        <footer>PitchIntel AI · Phase 6 · Dockerized cloud deployment</footer>
       </main>
     </div>
   );

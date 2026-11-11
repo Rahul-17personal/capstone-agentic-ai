@@ -90,12 +90,15 @@ export default function App() {
       setResult(data.analysis);
       setWorkflow(data.workflow);
       const researchResponse = await fetch(`${API_URL}/competitive-research`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ company_name: companyName, industry, competitors: competitors.split(",").map((v) => v.trim()).filter(Boolean), research_mode: researchMode, provider }),
       });
       const researchData = await researchResponse.json();
       if (!researchResponse.ok) throw new Error(researchData.detail || "Competitor research failed");
-      setCompetitiveResearch(researchData.research);\n      const saved = await fetch(`${API_URL}/history`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ company_name: companyName, source_filename: file.name, analysis: data.analysis, competitive_research: researchData.research }) });\n      if (!saved.ok) throw new Error("Analysis completed, but saving to history failed.");\n      await loadHistory();
+      setCompetitiveResearch(researchData.research);
+      const saved = await fetch(`${API_URL}/history`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ company_name: companyName, source_filename: file.name, analysis: data.analysis, competitive_research: researchData.research }) });
+      if (!saved.ok) throw new Error("Analysis completed, but saving to history failed.");
+      await loadHistory();
     } catch (err) {
       setError(err.message || "Unable to reach the backend. Is it running?");
     } finally { setLoading(false); }
@@ -109,7 +112,7 @@ export default function App() {
     try {
       const response = await fetch(`${API_URL}/reports/${format}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           company_name: companyName || "Sales Pitch Review",
           source_filename: file?.name || null,
@@ -153,7 +156,8 @@ export default function App() {
           <h1>Turn your sales pitch into<br /><em>a competitive advantage.</em></h1>
           <p>Four specialised AI agents collaborate to evaluate your messaging, uncover gaps and create a stronger sales pitch.</p>
         </section>
-        <section className="history-strip"><div><b>Saved analyses</b><span>{history.length} reports in your account</span></div><button type="button" onClick={() => loadHistory()}>Refresh history</button>{history.slice(0,5).map((item) => <button type="button" className="history-item" key={item.id} onClick={() => {setResult(item.analysis);setCompetitiveResearch(item.competitive_research);setCompanyName(item.company_name);}}><b>{item.company_name}</b><span>{item.overall_score}/100 · {new Date(item.created_at).toLocaleDateString()}</span></button>)}</section>\n        <section className="workspace">
+        <section className="history-strip"><div><b>Saved analyses</b><span>{history.length} reports in your account</span></div><button type="button" onClick={() => loadHistory()}>Refresh history</button>{history.slice(0,5).map((item) => <button type="button" className="history-item" key={item.id} onClick={() => {setResult(item.analysis);setCompetitiveResearch(item.competitive_research);setCompanyName(item.company_name);}}><b>{item.company_name}</b><span>{item.overall_score}/100 · {new Date(item.created_at).toLocaleDateString()}</span></button>)}</section>
+        <section className="workspace">
           <form className="panel" onSubmit={analyzePitch}>
             <div className="panel-heading"><div><span className="step">01</span><h2>Upload your sales pitch</h2></div><FileText /></div>
             <label className="upload-area">

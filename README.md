@@ -8,7 +8,7 @@ Sales Pitch Review & Competitive Intelligence web application.
 - **Phase 3:** Live competitor discovery and research (automatic/manual/both), source-linked findings, pricing/features observations and pitch opportunities using Tavily plus OpenAI/Gemini.
 - **Phase 4:** PDF, editable DOCX and PPTX report exports using the generated analysis and competitor research.
 - **Phase 5:** JWT authentication, password hashing, PostgreSQL/SQLite persistence, per-user analysis history, private S3 upload and optional S3 report archival.
-- **Not yet implemented:** production deployment and migration automation.
+- **Phase 6:** Docker images, local Docker Compose, Nginx reverse proxy, GitHub Actions CI, GHCR image publishing and EC2 deployment workflow. AWS network/database/load-balancer resources are provisioned separately.
 
 ## Stack
 - Frontend: React + Vite
@@ -74,6 +74,21 @@ Set `TAVILY_API_KEY` in `backend/.env` to enable live web search. Use `research_
 ## Phase 4 report exports
 
 After pitch analysis and competitor research, use the Download your report controls to export PDF, DOCX or PPTX. The frontend posts the existing report JSON to the matching `/api/v1/reports/{format}` endpoint; no extra AI analysis is run. Reports are generated in memory and returned as file attachments. See `docs/PHASE-4-REPORT-EXPORT.md`.
+
+## Phase 6: Docker, AWS and CI/CD
+
+See [`docs/PHASE-6-DOCKER-AWS-CICD.md`](docs/PHASE-6-DOCKER-AWS-CICD.md) for the full architecture and deployment guide.
+
+Local container setup:
+
+```bash
+# Copy .env.compose.example to .env and backend/.env.example to backend/.env
+# Add model API keys and a strong JWT_SECRET_KEY to backend/.env
+docker compose up --build -d
+docker compose ps
+```
+
+Open http://localhost:8080. CI runs backend tests, frontend build and Docker build checks. Pushes to `main` publish frontend/backend images to GHCR and deploy to a pre-provisioned EC2 host. Configure `EC2_HOST`, `EC2_USER`, `EC2_SSH_PRIVATE_KEY`, `EC2_APP_DIR`, `GHCR_USERNAME` and `GHCR_READ_TOKEN` as GitHub Actions secrets. Production uses RDS PostgreSQL and private S3; terminate HTTPS at an AWS Application Load Balancer with an ACM certificate. The workflow does not provision AWS infrastructure.
 
 ## Phase 5: database, authentication and S3
 

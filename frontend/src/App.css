@@ -33,6 +33,7 @@
 .metric{margin:15px 0}.metric>div{display:flex;justify-content:space-between;font-size:11px;color:#64728a;margin-bottom:7px}.metric b{color:#36445f}
 .metric progress{display:block;width:100%;height:7px;border:0;border-radius:20px;overflow:hidden;accent-color:#527be8}
 .improved-pitch{padding:16px;background:#f7f9fd;border:1px solid #edf0f6;border-radius:10px;white-space:pre-wrap;font-size:12px;line-height:1.8;color:#56647c}
+.agent-trace{display:grid;gap:8px;margin-bottom:18px}.agent-step{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e8edf6;border-radius:9px;background:#fbfcff}.agent-step span{font-size:10px;font-weight:700;color:#527be8}.agent-step b{font-size:11px;color:#3b4963}.agent-step small{font-size:10px;color:#15966b}
 .error{margin-top:14px;padding:10px;border-radius:8px;background:#fff1f1;color:#bd444b;font-size:12px;display:flex;gap:8px;align-items:center}
 .spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}footer{text-align:center;color:#9ba5b5;font-size:10px;padding:30px 0 10px}
 @media(max-width:850px){.workspace{grid-template-columns:1fr}.container{padding:32px 16px}.topbar{padding:0 18px}.empty-state{min-height:230px}}

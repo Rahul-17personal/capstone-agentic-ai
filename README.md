@@ -22,7 +22,7 @@ Sales Pitch Review & Competitive Intelligence web application.
 - Validation: Pydantic
 
 ## Requirements
-Python 3.11+, Node.js 20+, npm, and at least one provider API key.
+For manual development: Python 3.11+, Node.js 20+, npm, and at least one provider API key. For the containerized setup: Docker Desktop with Docker Compose v2. AWS is optional and only needed if you choose the EC2 deployment path.
 
 ## Backend setup
 ```bash
@@ -88,7 +88,7 @@ docker compose up --build -d
 docker compose ps
 ```
 
-Open http://localhost:8080. CI runs backend tests, frontend build and Docker build checks. Pushes to `main` publish frontend/backend images to GHCR and deploy to a pre-provisioned EC2 host. Configure `EC2_HOST`, `EC2_USER`, `EC2_SSH_PRIVATE_KEY`, `EC2_APP_DIR`, `GHCR_USERNAME` and `GHCR_READ_TOKEN` as GitHub Actions secrets. Production uses RDS PostgreSQL and private S3; terminate HTTPS at an AWS Application Load Balancer with an ACM certificate. The workflow does not provision AWS infrastructure.
+Open http://localhost:8080. CI runs backend tests, frontend build and Docker build checks. **Code-only by default:** pushing or merging this branch does not deploy to AWS. The deployment workflow can be started manually from GitHub Actions; its `deploy_to_ec2` input defaults to `false`. Only select `true` when you intentionally want to publish images and deploy to an already provisioned EC2 host. That deployment requires the `EC2_HOST`, `EC2_USER`, `EC2_SSH_PRIVATE_KEY`, `EC2_APP_DIR`, `GHCR_USERNAME` and `GHCR_READ_TOKEN` GitHub Actions secrets. The workflow does not create AWS infrastructure. You do not need an AWS account to store the source code, run CI, or use the local Docker Compose setup.
 
 ## Phase 5: database, authentication and S3
 
@@ -114,4 +114,4 @@ Never commit `.env` files or expose provider keys in frontend code. Uploaded con
 3. Phase 3 — live competitor discovery/research with source URLs and evidence validation (implemented).
 4. Phase 4 — PDF, DOCX and PPTX report generation (implemented).
 5. Phase 5 — PostgreSQL, S3, authentication and analysis history (implemented; production hardening remains).
-6. Phase 6 — Docker, AWS deployment, CI/CD and monitoring.
+6. Phase 6 — Docker, local Compose, CI/CD and optional AWS deployment.

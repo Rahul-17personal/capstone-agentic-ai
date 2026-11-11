@@ -63,6 +63,7 @@ def build_pdf(payload: dict) -> bytes:
     styles = {
         "Title": ParagraphStyle("ReportTitle", parent=base["Title"], textColor=colors.HexColor("#17233e"), alignment=TA_CENTER, fontSize=23, leading=28, spaceAfter=7*mm),
         "Subtitle": ParagraphStyle("Subtitle", parent=base["Normal"], textColor=colors.HexColor("#64748b"), alignment=TA_CENTER, fontSize=9, spaceAfter=9*mm),
+        "Heading1": ParagraphStyle("ReportSectionTitle", parent=base["Heading1"], textColor=colors.HexColor("#17233e"), fontSize=16, leading=20, spaceBefore=6*mm, spaceAfter=3*mm),
         "Heading2": ParagraphStyle("Section", parent=base["Heading2"], textColor=colors.HexColor("#315fc9"), fontSize=13, leading=16, spaceBefore=5*mm, spaceAfter=2*mm),
         "BodyText": ParagraphStyle("ReportBody", parent=base["BodyText"], fontSize=9, leading=14, textColor=colors.HexColor("#334155"), spaceAfter=2*mm),
     }

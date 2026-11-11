@@ -7,6 +7,9 @@ from pydantic import BaseModel, Field
 
 from app.dependencies import get_current_user
 from app.models import User
+from app.config import settings
+from app.services.object_storage import s3_enabled, upload_bytes
+from uuid import uuid4
 from app.services.report_generator import build_docx, build_pdf, build_pptx
 
 router = APIRouter()
@@ -44,8 +47,16 @@ def export_report(file_format: str, request: ReportRequest, user: User = Depends
 
     safe_name = re.sub(r"[^A-Za-z0-9_-]+", "-", request.company_name).strip("-") or "PitchIntel"
     media_type = BUILDERS[fmt][1]
+    headers = {"Content-Disposition": f'attachment; filename="{safe_name}-PitchIntel-Report.{fmt}"'}
+    if s3_enabled():
+        key = f"users/{user.id}/reports/{uuid4().hex}.{fmt}"
+        try:
+            upload_bytes(data, key, media_type)
+            headers["X-S3-Object-Key"] = key
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail="Report generated but S3 archival failed") from exc
     return StreamingResponse(
         BytesIO(data),
         media_type=media_type,
-        headers={"Content-Disposition": f'attachment; filename="{safe_name}-PitchIntel-Report.{fmt}"'},
+        headers=headers,
     )

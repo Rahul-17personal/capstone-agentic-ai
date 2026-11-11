@@ -15,7 +15,7 @@ from app.config import settings
 app = FastAPI(
     title=settings.APP_NAME,
     description="Sales Pitch Review and Competitive Intelligence",
-    version="0.4.0",
+    version="0.5.0",
 )
 if settings.APP_ENV == "production" and settings.JWT_SECRET_KEY == "dev-only-change-this-secret-before-deploying":
     raise RuntimeError("Set a secure JWT_SECRET_KEY before production startup")
@@ -26,7 +26,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.FRONTEND_ORIGIN],
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
 )
 app.include_router(router, prefix="/api/v1", tags=["Pitch Analysis"])

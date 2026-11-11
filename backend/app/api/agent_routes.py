@@ -2,10 +2,12 @@ from pathlib import Path
 import os
 import tempfile
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import ValidationError
 
 from app.config import settings
+from app.dependencies import get_current_user
+from app.models import User
 from app.services.agent_workflow import run_pitch_workflow
 from app.services.document_parser import extract_text
 
@@ -19,6 +21,7 @@ async def run_agent_workflow(
     file: UploadFile = File(...),
     provider: str = Form(settings.DEFAULT_AI_PROVIDER),
     competitors: str = Form(""),
+    user: User = Depends(get_current_user),
 ):
     """Run the LangGraph strategist -> critic -> coach -> report workflow."""
     filename = file.filename or "upload"

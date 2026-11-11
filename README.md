@@ -4,8 +4,9 @@ Sales Pitch Review & Competitive Intelligence web application.
 
 ## Current implementation
 - **Phase 1:** React + Vite dashboard, FastAPI API, PDF/DOCX/PPTX text extraction, OpenAI and Gemini provider support.
-- **Phase 2:** LangGraph multi-agent workflow with a Sales Strategist, Pitch Critic, Sales Coach and Report Synthesizer. The frontend calls this workflow and displays the completed agent trace.
-- **Not yet implemented:** live competitor research, source verification, exportable reports, database persistence and AWS deployment.
+- **Phase 2:** LangGraph multi-agent workflow with a Sales Strategist, Pitch Critic, Sales Coach and Report Synthesizer.
+- **Phase 3:** Live competitor discovery and research (automatic/manual/both), source-linked findings, pricing/features observations and pitch opportunities using Tavily plus OpenAI/Gemini.
+- **Not yet implemented:** exportable reports, database persistence and AWS deployment.
 
 ## Stack
 - Frontend: React + Vite
@@ -43,6 +44,7 @@ Open http://localhost:5173.
 - `GET /api/v1/health` — health check
 - `POST /api/v1/analyze` — Phase 1 single-pass analysis
 - `POST /api/v1/agent-workflow` — Phase 2 LangGraph workflow (multipart: file, provider=openai|gemini, competitors optional comma-separated names)
+- `POST /api/v1/competitive-research` — Phase 3 live competitor research (JSON: company_name, industry, competitors, research_mode, provider)
 
 ## Phase 2 workflow
 1. Strategist: positioning, value proposition, audience and proof points.
@@ -51,6 +53,10 @@ Open http://localhost:5173.
 4. Report Synthesizer: consolidates agent results into the Phase 1 report schema.
 
 The current graph is sequential; every agent uses the selected provider. User-supplied competitor names are context only. No live competitive research is performed in Phase 2.
+
+## Phase 3 competitive research
+
+Set `TAVILY_API_KEY` in `backend/.env` to enable live web search. Use `research_mode=automatic` to discover competitors, `manual` to research only supplied names, or `both` to combine them. Every displayed citation URL is selected from actual search results. Citation-ID validation is deterministic; semantic claim verification still requires a human to inspect important sources. See `docs/PHASE-3-COMPETITIVE-INTELLIGENCE.md`.
 
 ## Tests
 From `backend/` run:
@@ -65,7 +71,7 @@ Never commit `.env` files or expose provider keys in frontend code. Uploaded con
 ## Roadmap
 1. Phase 1 — application foundation and dual-provider document analysis.
 2. Phase 2 — LangGraph multi-agent workflow.
-3. Phase 3 — live competitor discovery/research with source URLs and evidence validation.
+3. Phase 3 — live competitor discovery/research with source URLs and evidence validation (implemented).
 4. Phase 4 — PDF, DOCX and PPTX report generation.
 5. Phase 5 — PostgreSQL, S3, authentication and background jobs.
 6. Phase 6 — Docker, AWS deployment, CI/CD and monitoring.

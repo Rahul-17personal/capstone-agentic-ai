@@ -15,7 +15,7 @@ from app.config import settings
 app = FastAPI(
     title=settings.APP_NAME,
     description="Sales Pitch Review and Competitive Intelligence",
-    version="0.5.0",
+    version="0.6.0",
 )
 if settings.APP_ENV == "production" and settings.JWT_SECRET_KEY == "dev-only-change-this-secret-before-deploying":
     raise RuntimeError("Set a secure JWT_SECRET_KEY before production startup")

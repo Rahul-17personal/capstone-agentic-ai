@@ -6,7 +6,7 @@
 - Docker Compose for local frontend + backend + PostgreSQL.
 - Nginx serves the SPA and reverse-proxies /api/* to FastAPI.
 - GitHub Actions CI: backend tests, frontend production build and Docker image builds.
-- GitHub Actions deployment workflow: publish versioned images to GHCR and deploy to an EC2 host over SSH.
+- GitHub Actions deployment workflow: manually triggered, validates first, and publishes versioned images to GHCR/deploys to EC2 only when the explicit `deploy_to_ec2` input is set to `true`.
 - Production Compose file expects managed PostgreSQL (RDS), private S3 and secrets supplied on the EC2 host.
 - TLS is intended to terminate at an AWS Application Load Balancer with an ACM certificate. Do not expose the app container's port 80 directly to the public internet.
 
@@ -68,12 +68,13 @@ Create the RDS database and user before deploying. Configure S3 and the EC2 inst
 - `GHCR_USERNAME`: GitHub username with package read access.
 - `GHCR_READ_TOKEN`: fine-grained/classic PAT with read:packages for the private GHCR images.
 
-The GitHub Actions workflow publishes the backend and frontend images to GitHub Container Registry. It deploys automatically on pushes to `main`, or can be run manually with workflow_dispatch. Protect `main` and require CI checks before merging. Configure GHCR package permissions so the token can pull both images.
+The GitHub Actions deployment workflow is started manually from Actions using `workflow_dispatch`. Its `deploy_to_ec2` boolean input defaults to `false`. The validation job runs first; the image-publishing and EC2 deployment job is skipped unless the operator explicitly selects `true`. Configure GHCR package permissions so the target host can pull both images. A push or merge to `main` does not deploy the application.
 
 ## CI/CD behavior
 - Pull requests to main: run backend tests, frontend build, and Docker build checks.
 - Pushes to main and Phase 6 feature branches: run CI checks.
-- Pushes to main: publish `latest` and commit-SHA image tags, then update EC2 Compose services.
+- The deployment workflow is manual only. With `deploy_to_ec2=false` (the default), it performs validation and skips image publishing/deployment.
+- With `deploy_to_ec2=true`, after validation it publishes `latest` and commit-SHA image tags, then updates EC2 Compose services.
 - Deployment requires the repository secrets above and pre-provisioned AWS resources. It does not create VPC, ALB, ACM, RDS, S3 or EC2 resources automatically.
 
 ## Operational checklist

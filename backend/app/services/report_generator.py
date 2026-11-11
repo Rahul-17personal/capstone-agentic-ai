@@ -227,12 +227,6 @@ def _pptx_title(slide, title: str, subtitle: str | None = None) -> None:
         paragraph.font.size = PptxPt(28)
         paragraph.font.bold = True
         paragraph.font.color.rgb = PptxRGB(23, 35, 62)
-    if subtitle:
-        box = slide.shapes.add_textbox(PptxInches(.7), PptxInches(1.15), PptxInches(11.8), PptxInches(.5))
-        p = box.text_frame.paragraphs[0]
-        p.text = subtitle
-        p.font.size = PptxPt(13)
-        p.font.color.rgb = PptxRGB(100, 116, 139)
 
 
 def _pptx_bullet_slide(prs, title: str, items: list[str]) -> None:

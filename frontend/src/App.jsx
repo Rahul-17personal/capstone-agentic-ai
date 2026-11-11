@@ -173,7 +173,17 @@ export default function App() {
                 <ol className="source-list">{competitiveResearch.sources.map((source) => <li key={source.source_id}><b>{source.source_id}</b> · <a href={source.url} target="_blank" rel="noreferrer">{source.title || source.url}</a><p>{source.snippet}</p></li>)}</ol>
                 <p className="disclaimer">{competitiveResearch.evidence_policy}</p>
               </section>}
-              <section className="export-panel">\n                <h3><Download size={17} /> Download your report</h3>\n                <p>Choose a format. Reports include the pitch assessment and competitor research when available.</p>\n                <div className="export-actions">\n                  {["pdf", "docx", "pptx"].map((format) => <button type="button" key={format} onClick={() => exportReport(format)} disabled={Boolean(exporting)}>\n                    {exporting === format ? <LoaderCircle className="spin" size={15} /> : <Download size={15} />} {format.toUpperCase()}\n                  </button>)}\n                </div>\n                {exportMessage && <p className="export-success">{exportMessage}</p>}\n              </section>\n              <p className="disclaimer">AI-generated assessment. Review source pages before relying on competitive claims or pricing.</p>
+              <section className="export-panel">
+                <h3><Download size={17} /> Download your report</h3>
+                <p>Choose a format. Reports include the pitch assessment and competitor research when available.</p>
+                <div className="export-actions">
+                  {["pdf", "docx", "pptx"].map((format) => <button type="button" key={format} onClick={() => exportReport(format)} disabled={Boolean(exporting)}>
+                    {exporting === format ? <LoaderCircle className="spin" size={15} /> : <Download size={15} />} {format.toUpperCase()}
+                  </button>)}
+                </div>
+                {exportMessage && <p className="export-success">{exportMessage}</p>}
+              </section>
+              <p className="disclaimer">AI-generated assessment. Review source pages before relying on competitive claims or pricing.</p>
             </div>}
           </section>
         </section>

@@ -7,13 +7,17 @@ Sales Pitch Review & Competitive Intelligence web application.
 - **Phase 2:** LangGraph multi-agent workflow with a Sales Strategist, Pitch Critic, Sales Coach and Report Synthesizer.
 - **Phase 3:** Live competitor discovery and research (automatic/manual/both), source-linked findings, pricing/features observations and pitch opportunities using Tavily plus OpenAI/Gemini.
 - **Phase 4:** PDF, editable DOCX and PPTX report exports using the generated analysis and competitor research.
-- **Not yet implemented:** database persistence and AWS deployment.
+- **Phase 5:** JWT authentication, password hashing, PostgreSQL/SQLite persistence, per-user analysis history, private S3 upload and optional S3 report archival.
+- **Not yet implemented:** production deployment and migration automation.
 
 ## Stack
 - Frontend: React + Vite
 - Backend: Python 3.11+ + FastAPI
 - Orchestration: LangGraph
 - Models: OpenAI Responses API and Google Gemini
+- Persistence: SQLAlchemy with PostgreSQL (SQLite for local quick start)
+- Authentication: JWT bearer tokens and Argon2 password hashing
+- Object storage: private AWS S3 bucket using server-side encryption and short-lived presigned download URLs
 - Documents: PyMuPDF, python-docx, python-pptx
 - Validation: Pydantic
 
@@ -49,6 +53,11 @@ Open http://localhost:5173.
 - `POST /api/v1/reports/pdf` — generate PDF report
 - `POST /api/v1/reports/docx` — generate editable Word report
 - `POST /api/v1/reports/pptx` — generate PowerPoint presentation
+- `POST /api/v1/auth/register` and `POST /api/v1/auth/login` — create account and authenticate
+- `GET /api/v1/auth/me` — current account profile
+- `GET|POST /api/v1/history` — list and save per-user analysis history
+- `GET|DELETE /api/v1/history/{id}` — retrieve or delete an owned analysis
+- `POST /api/v1/uploads/pitch` — upload a pitch file to private S3 (requires bucket configuration)
 
 ## Phase 2 workflow
 1. Strategist: positioning, value proposition, audience and proof points.
@@ -66,6 +75,14 @@ Set `TAVILY_API_KEY` in `backend/.env` to enable live web search. Use `research_
 
 After pitch analysis and competitor research, use the Download your report controls to export PDF, DOCX or PPTX. The frontend posts the existing report JSON to the matching `/api/v1/reports/{format}` endpoint; no extra AI analysis is run. Reports are generated in memory and returned as file attachments. See `docs/PHASE-4-REPORT-EXPORT.md`.
 
+## Phase 5: database, authentication and S3
+
+Copy `.env.example` to `.env`. SQLite is the default for local development if `DATABASE_URL` is omitted. For PostgreSQL, set `DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/DBNAME`. Set a long random `JWT_SECRET_KEY`; production refuses the development placeholder. Passwords are hashed with Argon2. Analysis, competitor research, report export, upload and history endpoints require `Authorization: Bearer <access_token>` after login.
+
+To enable private object storage, create an S3 bucket with Block Public Access enabled, configure `AWS_REGION` and `AWS_S3_BUCKET`, and provide AWS credentials through an IAM role or the standard AWS credential chain. Grant the backend only required `s3:PutObject` and `s3:GetObject` permissions on the bucket/prefix. Objects are namespaced by user ID and uploads use SSE-S3. Report exports are archived to S3 when configured. Keep the bucket private; use the authenticated history endpoint for short-lived source download URLs.
+
+For local setup, install requirements and start the backend; tables are created automatically for development. Production should use Alembic migrations, managed PostgreSQL, TLS, a secret manager, rate limiting, refresh-token/session revocation, email verification, backups and security monitoring before onboarding external customers. The frontend stores short-lived access tokens in localStorage in this capstone implementation; production should prefer secure HttpOnly cookies and a hardened CSP.
+
 ## Tests
 From `backend/` run:
 ```bash
@@ -81,5 +98,5 @@ Never commit `.env` files or expose provider keys in frontend code. Uploaded con
 2. Phase 2 — LangGraph multi-agent workflow.
 3. Phase 3 — live competitor discovery/research with source URLs and evidence validation (implemented).
 4. Phase 4 — PDF, DOCX and PPTX report generation (implemented).
-5. Phase 5 — PostgreSQL, S3, authentication and background jobs.
+5. Phase 5 — PostgreSQL, S3, authentication and analysis history (implemented; production hardening remains).
 6. Phase 6 — Docker, AWS deployment, CI/CD and monitoring.

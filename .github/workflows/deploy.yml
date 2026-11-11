@@ -2,8 +2,12 @@ name: PitchIntel Deploy to EC2
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
+    inputs:
+      deploy_to_ec2:
+        description: "Enable the EC2 deployment steps (leave unchecked for code-only use)"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -35,6 +39,7 @@ jobs:
           npm run build
 
   publish-and-deploy:
+    if: ${{ inputs.deploy_to_ec2 == true }}
     needs: validate
     runs-on: ubuntu-latest
     steps:

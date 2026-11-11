@@ -6,7 +6,8 @@ Sales Pitch Review & Competitive Intelligence web application.
 - **Phase 1:** React + Vite dashboard, FastAPI API, PDF/DOCX/PPTX text extraction, OpenAI and Gemini provider support.
 - **Phase 2:** LangGraph multi-agent workflow with a Sales Strategist, Pitch Critic, Sales Coach and Report Synthesizer.
 - **Phase 3:** Live competitor discovery and research (automatic/manual/both), source-linked findings, pricing/features observations and pitch opportunities using Tavily plus OpenAI/Gemini.
-- **Not yet implemented:** exportable reports, database persistence and AWS deployment.
+- **Phase 4:** PDF, editable DOCX and PPTX report exports using the generated analysis and competitor research.
+- **Not yet implemented:** database persistence and AWS deployment.
 
 ## Stack
 - Frontend: React + Vite
@@ -45,6 +46,9 @@ Open http://localhost:5173.
 - `POST /api/v1/analyze` — Phase 1 single-pass analysis
 - `POST /api/v1/agent-workflow` — Phase 2 LangGraph workflow (multipart: file, provider=openai|gemini, competitors optional comma-separated names)
 - `POST /api/v1/competitive-research` — Phase 3 live competitor research (JSON: company_name, industry, competitors, research_mode, provider)
+- `POST /api/v1/reports/pdf` — generate PDF report
+- `POST /api/v1/reports/docx` — generate editable Word report
+- `POST /api/v1/reports/pptx` — generate PowerPoint presentation
 
 ## Phase 2 workflow
 1. Strategist: positioning, value proposition, audience and proof points.
@@ -57,6 +61,10 @@ The current graph is sequential; every agent uses the selected provider. User-su
 ## Phase 3 competitive research
 
 Set `TAVILY_API_KEY` in `backend/.env` to enable live web search. Use `research_mode=automatic` to discover competitors, `manual` to research only supplied names, or `both` to combine them. Every displayed citation URL is selected from actual search results. Citation-ID validation is deterministic; semantic claim verification still requires a human to inspect important sources. See `docs/PHASE-3-COMPETITIVE-INTELLIGENCE.md`.
+
+## Phase 4 report exports
+
+After pitch analysis and competitor research, use the Download your report controls to export PDF, DOCX or PPTX. The frontend posts the existing report JSON to the matching `/api/v1/reports/{format}` endpoint; no extra AI analysis is run. Reports are generated in memory and returned as file attachments. See `docs/PHASE-4-REPORT-EXPORT.md`.
 
 ## Tests
 From `backend/` run:
@@ -72,6 +80,6 @@ Never commit `.env` files or expose provider keys in frontend code. Uploaded con
 1. Phase 1 — application foundation and dual-provider document analysis.
 2. Phase 2 — LangGraph multi-agent workflow.
 3. Phase 3 — live competitor discovery/research with source URLs and evidence validation (implemented).
-4. Phase 4 — PDF, DOCX and PPTX report generation.
+4. Phase 4 — PDF, DOCX and PPTX report generation (implemented).
 5. Phase 5 — PostgreSQL, S3, authentication and background jobs.
 6. Phase 6 — Docker, AWS deployment, CI/CD and monitoring.

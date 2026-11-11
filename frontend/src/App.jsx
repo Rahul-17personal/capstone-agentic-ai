@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, Brain, FileText, LoaderCircle, Sparkles, Target, TrendingUp, UploadCloud, Workflow } from "lucide-react";
+import { AlertCircle, Brain, Download, FileText, LoaderCircle, Sparkles, Target, TrendingUp, UploadCloud, Workflow } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/v1";
 
@@ -26,6 +26,8 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [workflow, setWorkflow] = useState(null);
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState("");
+  const [exportMessage, setExportMessage] = useState("");
 
   async function analyzePitch(event) {
     event.preventDefault();
@@ -52,6 +54,44 @@ export default function App() {
     } catch (err) {
       setError(err.message || "Unable to reach the backend. Is it running?");
     } finally { setLoading(false); }
+  }
+
+  async function exportReport(format) {
+    if (!result) return;
+    setExporting(format);
+    setExportMessage("");
+    setError("");
+    try {
+      const response = await fetch(`${API_URL}/reports/${format}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company_name: companyName || "Sales Pitch Review",
+          source_filename: file?.name || null,
+          analysis: result,
+          competitive_research: competitiveResearch,
+          workflow,
+        }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.detail || `Unable to generate ${format.toUpperCase()} report`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${(companyName || "PitchIntel").replace(/[^A-Za-z0-9_-]+/g, "-")}-PitchIntel-Report.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setExportMessage(`${format.toUpperCase()} report downloaded.`);
+    } catch (err) {
+      setError(err.message || "Report export failed");
+    } finally {
+      setExporting("");
+    }
   }
 
   const scoreClass = (score) => score >= 80 ? "good" : score >= 60 ? "average" : "poor";
@@ -133,7 +173,7 @@ export default function App() {
                 <ol className="source-list">{competitiveResearch.sources.map((source) => <li key={source.source_id}><b>{source.source_id}</b> · <a href={source.url} target="_blank" rel="noreferrer">{source.title || source.url}</a><p>{source.snippet}</p></li>)}</ol>
                 <p className="disclaimer">{competitiveResearch.evidence_policy}</p>
               </section>}
-              <p className="disclaimer">AI-generated assessment. Review source pages before relying on competitive claims or pricing.</p>
+              <section className="export-panel">\n                <h3><Download size={17} /> Download your report</h3>\n                <p>Choose a format. Reports include the pitch assessment and competitor research when available.</p>\n                <div className="export-actions">\n                  {["pdf", "docx", "pptx"].map((format) => <button type="button" key={format} onClick={() => exportReport(format)} disabled={Boolean(exporting)}>\n                    {exporting === format ? <LoaderCircle className="spin" size={15} /> : <Download size={15} />} {format.toUpperCase()}\n                  </button>)}\n                </div>\n                {exportMessage && <p className="export-success">{exportMessage}</p>}\n              </section>\n              <p className="disclaimer">AI-generated assessment. Review source pages before relying on competitive claims or pricing.</p>
             </div>}
           </section>
         </section>

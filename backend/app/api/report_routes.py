@@ -1,10 +1,12 @@
 from io import BytesIO
 import re
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from app.dependencies import get_current_user
+from app.models import User
 from app.services.report_generator import build_docx, build_pdf, build_pptx
 
 router = APIRouter()
@@ -24,7 +26,7 @@ class ReportRequest(BaseModel):
 
 
 @router.post("/reports/{file_format}")
-def export_report(file_format: str, request: ReportRequest):
+def export_report(file_format: str, request: ReportRequest, user: User = Depends(get_current_user)):
     """Build a downloadable report using already-generated analysis data."""
     fmt = file_format.lower()
     if fmt not in BUILDERS:

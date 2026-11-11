@@ -144,6 +144,22 @@ export default function App() {
 
   const scoreClass = (score) => score >= 80 ? "good" : score >= 60 ? "average" : "poor";
 
+  if (!token) return (
+    <div className="auth-shell">
+      <form className="auth-card" onSubmit={authenticate}>
+        <div className="brand-mark"><Brain size={24} /></div>
+        <h1>PitchIntel AI</h1>
+        <p>Sign in to your secure sales intelligence workspace.</p>
+        {authMode === "register" && <><label>Full name</label><input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your name" /></>}
+        <label>Email</label><input type="email" required value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="you@company.com" />
+        <label>Password</label><input type="password" required minLength={authMode === "register" ? 12 : 1} value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder={authMode === "register" ? "At least 12 characters" : "Your password"} />
+        <button className="primary-button">{authMode === "register" ? "Create account" : "Sign in"}</button>
+        {error && <div className="error">{error}</div>}
+        <button type="button" className="auth-toggle" onClick={() => {setAuthMode(authMode === "login" ? "register" : "login");setError("");}}>{authMode === "login" ? "New here? Create an account" : "Already registered? Sign in"}</button>
+      </form>
+    </div>
+  );
+
   return (
     <div className="app-shell">
       <header className="topbar">

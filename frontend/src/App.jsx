@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle, Brain, Download, FileText, LoaderCircle, Sparkles, Target, TrendingUp, UploadCloud, Workflow } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/v1";
@@ -28,6 +28,51 @@ export default function App() {
   const [error, setError] = useState("");
   const [exporting, setExporting] = useState("");
   const [exportMessage, setExportMessage] = useState("");
+  const [token, setToken] = useState(() => localStorage.getItem("pitchintel_token") || "");
+  const [user, setUser] = useState(null);
+  const [authMode, setAuthMode] = useState("login");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [history, setHistory] = useState([]);
+
+  async function authenticate(event) {
+    event.preventDefault();
+    setError("");
+    try {
+      const response = await fetch(`${API_URL}/auth/${authMode === "register" ? "register" : "login"}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: authEmail, password: authPassword, full_name: fullName }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Authentication failed");
+      localStorage.setItem("pitchintel_token", data.access_token);
+      setToken(data.access_token);
+      setUser(data.user);
+      setAuthPassword("");
+    } catch (err) { setError(err.message); }
+  }
+
+  function logout() {
+    localStorage.removeItem("pitchintel_token");
+    setToken(""); setUser(null); setHistory([]);
+    setResult(null); setCompetitiveResearch(null);
+  }
+
+  async function loadHistory(accessToken = token) {
+    if (!accessToken) return;
+    const response = await fetch(`${API_URL}/history`, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (response.ok) { const data = await response.json(); setHistory(data.items || []); }
+    else if (response.status === 401) logout();
+  }
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (response) => { if (!response.ok) throw new Error("Session expired"); return response.json(); })
+      .then((data) => { setUser(data); loadHistory(token); })
+      .catch(() => logout());
+  }, [token]);
 
   async function analyzePitch(event) {
     event.preventDefault();
@@ -39,7 +84,7 @@ export default function App() {
     formData.append("provider", provider);
     formData.append("competitors", competitors);
     try {
-      const response = await fetch(`${API_URL}/agent-workflow`, { method: "POST", body: formData });
+      const response = await fetch(`${API_URL}/agent-workflow`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Agent workflow failed");
       setResult(data.analysis);
@@ -50,7 +95,7 @@ export default function App() {
       });
       const researchData = await researchResponse.json();
       if (!researchResponse.ok) throw new Error(researchData.detail || "Competitor research failed");
-      setCompetitiveResearch(researchData.research);
+      setCompetitiveResearch(researchData.research);\n      const saved = await fetch(`${API_URL}/history`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ company_name: companyName, source_filename: file.name, analysis: data.analysis, competitive_research: researchData.research }) });\n      if (!saved.ok) throw new Error("Analysis completed, but saving to history failed.");\n      await loadHistory();
     } catch (err) {
       setError(err.message || "Unable to reach the backend. Is it running?");
     } finally { setLoading(false); }
@@ -100,7 +145,7 @@ export default function App() {
     <div className="app-shell">
       <header className="topbar">
         <div className="brand"><div className="brand-mark"><Brain size={24} /></div><div><strong>PitchIntel AI</strong><span>Multi-Agent Sales Intelligence</span></div></div>
-        <div className="workspace-pill"><i /> LangGraph Workspace</div>
+        <div className="workspace-pill"><i /> {user?.email || "Secure Workspace"} <button className="logout-button" onClick={logout}>Sign out</button></div>
       </header>
       <main className="container">
         <section className="hero">
@@ -108,7 +153,7 @@ export default function App() {
           <h1>Turn your sales pitch into<br /><em>a competitive advantage.</em></h1>
           <p>Four specialised AI agents collaborate to evaluate your messaging, uncover gaps and create a stronger sales pitch.</p>
         </section>
-        <section className="workspace">
+        <section className="history-strip"><div><b>Saved analyses</b><span>{history.length} reports in your account</span></div><button type="button" onClick={() => loadHistory()}>Refresh history</button>{history.slice(0,5).map((item) => <button type="button" className="history-item" key={item.id} onClick={() => {setResult(item.analysis);setCompetitiveResearch(item.competitive_research);setCompanyName(item.company_name);}}><b>{item.company_name}</b><span>{item.overall_score}/100 · {new Date(item.created_at).toLocaleDateString()}</span></button>)}</section>\n        <section className="workspace">
           <form className="panel" onSubmit={analyzePitch}>
             <div className="panel-heading"><div><span className="step">01</span><h2>Upload your sales pitch</h2></div><FileText /></div>
             <label className="upload-area">

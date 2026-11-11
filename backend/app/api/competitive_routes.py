@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.config import settings
+from app.dependencies import get_current_user
+from app.models import User
 from app.services.competitor_research import run_competitor_research
 
 router = APIRouter()
@@ -16,7 +18,7 @@ class CompetitiveResearchRequest(BaseModel):
 
 
 @router.post("/competitive-research")
-def competitive_research(request: CompetitiveResearchRequest):
+def competitive_research(request: CompetitiveResearchRequest, user: User = Depends(get_current_user)):
     """Discover and compare competitors using live web search and source-linked findings."""
     if request.provider.lower() not in {"openai", "gemini"}:
         raise HTTPException(status_code=400, detail="Provider must be openai or gemini")

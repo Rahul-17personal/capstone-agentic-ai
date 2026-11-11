@@ -13,6 +13,7 @@ class Settings:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or None
     OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or None
+    TAVILY_API_KEY = os.getenv("TAVILY_API_KEY") or None
     GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     DEFAULT_AI_PROVIDER = os.getenv("DEFAULT_AI_PROVIDER", "openai").lower()
     MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "20"))
